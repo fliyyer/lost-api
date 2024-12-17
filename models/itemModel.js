@@ -26,6 +26,16 @@ const Item = sequelize.define('Item', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+    status: {
+      type: DataTypes.ENUM('Checking', 'Accepted', 'Rejected'),
+      allowNull: false,
+      defaultValue: 'Checking',
+    },
+    claimedBy: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: null
+    }
 });
 
 module.exports = Item;

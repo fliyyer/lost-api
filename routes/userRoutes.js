@@ -29,7 +29,8 @@ router.post('/register', async (req, res) => {
       name,
       email,
       phone,
-      password: hashedPassword
+      password: hashedPassword,
+      role: 'user' 
     });
 
     res.status(201).json({
@@ -37,6 +38,7 @@ router.post('/register', async (req, res) => {
       name: user.name,
       email: user.email,
       phone: user.phone,
+      role: user.role,
       message: 'User registered successfully'
     });
 
@@ -45,6 +47,7 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -65,8 +68,8 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, name: user.name, email: user.email },
-      'your_jwt_secret_key', 
+      { id: user.id, name: user.name, email: user.email, role: user.role },
+      'your_jwt_secret_key',
       { expiresIn: '1h' }
     );
 
@@ -77,5 +80,6 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
 
 module.exports = router;

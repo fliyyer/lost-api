@@ -2,12 +2,27 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const Item = require('../models/itemModel');
+const { Op } = require('sequelize');
 
 const router = express.Router();
 
 router.get('/', async (req, res) => {
+  const { status, claimed } = req.query;
+
+  const filter = {};
+
+  if (status) {
+    filter.status = status;
+  }
+
+  if (claimed === 'true') {
+    filter.claimedBy = { [Op.not]: null }; 
+  } else if (claimed === 'false') {
+    filter.claimedBy = null; 
+  }
+
   try {
-    const items = await Item.findAll();
+    const items = await Item.findAll({ where: filter });
     return res.status(200).json({
       message: 'Items retrieved successfully.',
       items,
@@ -15,6 +30,87 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'An error occurred while fetching items.' });
+  }
+});
+
+router.get('/search', async (req, res) => {
+  const { name, category, lastLocation, date } = req.query;
+  const filter = {};
+  if (name) {
+    filter.name = { [Op.like]: `%${name}%` }; 
+  }
+  if (category) {
+    filter.category = { [Op.like]: `%${category}%` };
+  }
+  if (lastLocation) {
+    filter.lastLocation = { [Op.like]: `%${lastLocation}%` };
+  }
+  if (date) {
+    filter.date = date; 
+  }
+  try {
+    const items = await Item.findAll({ where: filter });
+    return res.status(200).json({
+      message: 'Items retrieved successfully.',
+      items,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'An error occurred while searching for items.' });
+  }
+});
+
+router.put('/:id/status', async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!['Checking', 'Accepted'].includes(status)) {
+    return res.status(400).json({ message: 'Invalid status value.' });
+  }
+
+  try {
+    const item = await Item.findByPk(id);
+
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found.' });
+    }
+
+    item.status = status;
+    await item.save();
+
+    return res.status(200).json({ message: 'Item status updated successfully.', item });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'An error occurred while updating the item status.' });
+  }
+});
+
+router.put('/:id/claim', async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required to claim an item.' });
+  }
+
+  try {
+    const item = await Item.findByPk(id);
+
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found.' });
+    }
+
+    if (item.claimedBy) {
+      return res.status(400).json({ message: 'Item is already claimed.' });
+    }
+
+    item.claimedBy = userId;
+    await item.save();
+
+    return res.status(200).json({ message: 'Item claimed successfully.', item });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'An error occurred while claiming the item.' });
   }
 });
 
