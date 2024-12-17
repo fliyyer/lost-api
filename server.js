@@ -1,11 +1,15 @@
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const { sequelize } = require('./models');
 const userRoutes = require('./routes/userRoutes');
 const itemRoutes = require('./routes/itemRoutes'); 
 
+
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+app.use(cors())
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
