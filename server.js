@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const { sequelize } = require('./models');
 const userRoutes = require('./routes/userRoutes');
 const itemRoutes = require('./routes/itemRoutes'); 
+require('dotenv').config();
 
 
 const app = express();

@@ -5,8 +5,6 @@ const User = require('../models/userModel');
 
 const router = express.Router();
 
-const JWT_SECRET = 'your_jwt_secret_key'; 
-
 router.post('/register', async (req, res) => {
   const { name, email, phone, password, confirmPassword } = req.body;
 
@@ -69,7 +67,7 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign(
       { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role },
-      JWT_SECRET, 
+      process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
