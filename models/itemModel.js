@@ -27,9 +27,9 @@ const Item = sequelize.define('Item', {
     allowNull: false,
   },
     status: {
-      type: DataTypes.ENUM('Checking', 'Accepted', 'Rejected'),
+      type: DataTypes.ENUM('Checking', 'Accepted','Available'),
       allowNull: false,
-      defaultValue: 'Checking',
+      defaultValue: 'Available',
     },
     claimedBy: {
       type: DataTypes.INTEGER,

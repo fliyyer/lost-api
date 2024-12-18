@@ -13,9 +13,11 @@ app.use(cors())
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/uploads', express.static('routes/uploads'));
 
 app.use('/api/users', userRoutes);
 app.use('/api/items', itemRoutes); 
+
 
 sequelize.authenticate()
   .then(() => console.log('Database connected!'))

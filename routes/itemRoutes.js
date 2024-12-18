@@ -9,10 +9,13 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   const { status, claimed } = req.query;
+
   const filter = {};
+
   if (status) {
     filter.status = status;
   }
+
   if (claimed === 'true') {
     filter.claimedBy = { [Op.not]: null }; 
   } else if (claimed === 'false') {
@@ -31,22 +34,23 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;  
-  try {
-    const item = await Item.findByPk(id); 
+router.get('/details/:id', async (req, res) => {
+  const { id } = req.params;
+  try { 
+    const item = await Item.findByPk(id);
     if (!item) {
       return res.status(404).json({ message: 'Item not found.' });
     }
     return res.status(200).json({
-      message: 'Item retrieved successfully.',
+      message: 'Item details retrieved successfully.',
       item,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'An error occurred while fetching the item.' });
+    return res.status(500).json({ message: 'An error occurred while fetching item details.' });
   }
 });
+
 
 router.get('/search', async (req, res) => {
   const { name, category, lastLocation, date } = req.query;
