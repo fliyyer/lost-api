@@ -1,10 +1,11 @@
-// routes/userRoutes.js
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 
 const router = express.Router();
+
+const JWT_SECRET = 'your_jwt_secret_key'; 
 
 router.post('/register', async (req, res) => {
   const { name, email, phone, password, confirmPassword } = req.body;
@@ -29,8 +30,8 @@ router.post('/register', async (req, res) => {
       name,
       email,
       phone,
-      password: hashedPassword,
-      role: 'user' 
+      role: 'user',
+      password: hashedPassword
     });
 
     res.status(201).json({
@@ -47,7 +48,6 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
-
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -68,8 +68,8 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, name: user.name, email: user.email, role: user.role },
-      'your_jwt_secret_key',
+      { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role },
+      JWT_SECRET, 
       { expiresIn: '1h' }
     );
 
@@ -80,6 +80,5 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
-
 
 module.exports = router;
