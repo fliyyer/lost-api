@@ -4,6 +4,7 @@ const path = require('path');
 const Item = require('../models/itemModel');
 const { Op } = require('sequelize');
 const authenticateToken = require('../middleware ');
+const multer = require('multer');
 
 const router = express.Router();
 
@@ -95,27 +96,43 @@ router.put('/:id/status', authenticateToken, async (req, res) => {
   }
 });
 
-router.post('/upload', authenticateToken, async (req, res) => {
-  const { name, category, lastLocation, date, description, photo, claimedBy, status } = req.body;
+// fungsi untuk upload gambar
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, './uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}${path.extname(file.originalname)}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 4 * 1024 * 1024 }, 
+  fileFilter: (req, file, cb) => {
+    const fileTypes = /jpeg|jpg|png/;
+    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = fileTypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error('Only .jpg, .jpeg, and .png files are allowed!'));
+  }
+});
+
+router.post('/upload', authenticateToken, upload.single('photo'), async (req, res) => {
+  const { name, category, lastLocation, date, description, claimedBy, status } = req.body;
   if (!name || !category || !lastLocation || !date) {
     return res.status(400).json({ message: 'All required fields must be filled.' });
   }
+
   let photoFilename = null;
-  if (photo) {
-    try {
-      const base64Pattern = /^data:image\/(jpeg|png|jpg);base64,/;
-      if (!base64Pattern.test(photo)) {
-        return res.status(400).json({ message: 'Invalid photo format. Only .jpg, .jpeg, and .png are allowed.' });
-      }
-      const fileExtension = photo.match(base64Pattern)[1];
-      const base64Data = photo.replace(base64Pattern, '');
-      photoFilename = `${Date.now()}.${fileExtension}`;
-      const uploadPath = path.join(__dirname, './uploads', photoFilename);
-      fs.writeFileSync(uploadPath, Buffer.from(base64Data, 'base64'));
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'An error occurred while processing the photo.' });
-    }
+  if (req.file) {
+    photoFilename = req.file.filename;
   }
 
   try {
